@@ -1,0 +1,108 @@
+---
+title: "Using LDA_Rep function"
+format: 
+  html:
+    toc: true
+    theme: cosmo
+editor: visual
+---
+
+## Running *LDA_Rep function*
+
+**LDA_Rep_Function.R** file includes the LDA_Rep function. Prior to use, the function has to be executed.
+
+```{r}
+#| warninig: false
+#| include: false
+source("LDA_Rep_Function.R", local = knitr::knit_global())
+
+```
+
+## Example: Using LDA_Rep function
+
+```{r}
+#|  warning: false
+#|  include: false
+
+load("./data/SRL_lda_12topics.RData") # loading LDA replications
+
+result_SRL_LDA <- LDA_Rep(SRL_lda)
+```
+
+The LDA_Rep function returns a list containing the following data:
+
+-   number of documents (n.documents)
+
+```{r}
+result_SRL_LDA$n.documents
+```
+
+-   number of topics (n.topics)
+
+```{r}
+result_SRL_LDA$n.topics
+```
+
+-   number of replications (n.replications)
+
+```{r}
+result_SRL_LDA$n.replications
+```
+
+-   identified LDA replication using Manhattan distance (result_man)
+
+```{r}
+result_SRL_LDA$result_man |> 
+  as_tibble() |> 
+  regulartable()
+
+```
+
+-   hierarchical cluster analysis using Manhattan distance (viz_man)
+
+```{r}
+plot(result_SRL_LDA$viz_man,  labels = topicmodels::topics(SRL_lda[[result_SRL_LDA$result_man[1,1]]]), xlab = "Manhattan distance (Ward.D2)", cex=0.5)
+
+abline(h = (result_SRL_LDA$viz_man$height[result_SRL_LDA$n.documents - result_SRL_LDA$n.topics] +  result_SRL_LDA$viz_man$height[result_SRL_LDA$n.documents - (result_SRL_LDA$n.topics - 1)])/2, col = "red")
+
+```
+
+-   number of documents per topic for Manhattan distance
+
+```{r}
+table(cutree(result_SRL_LDA$viz_man, result_SRL_LDA$n.topics),  topicmodels::topics(SRL_lda[[result_SRL_LDA$result_man[1,1]]])) |> 
+  as.data.frame() |> 
+  pivot_wider(names_from = Var2, values_from = Freq) |> 
+  regulartable() |> 
+  set_header_labels(i = 1, j = 1, values = c(Var1 = "")) |> 
+  autofit()
+```
+
+-   identified LDA replication using Euclidean distance (result_euc)
+
+```{r}
+result_SRL_LDA$result_euc |> 
+  as_tibble() |> 
+  regulartable()
+```
+
+-   hierarchical cluster analysis using Euclidean distance (viz_euc)
+
+```{r}
+plot(result_SRL_LDA$viz_euc,  labels = topicmodels::topics(SRL_lda[[result_SRL_LDA$result_euc[1,1]]]), xlab = "Euclidean distance (Ward.D2)") 
+
+abline(h = (result_SRL_LDA$viz_euc$height[result_SRL_LDA$n.documents - result_SRL_LDA$n.topics] +  result_SRL_LDA$viz_euc$height[result_SRL_LDA$n.documents - (result_SRL_LDA$n.topics - 1)])/2, col = "red") 
+
+```
+
+-   number of documents per topic for Euclidean distance
+
+```{r}
+
+table(cutree(result_SRL_LDA$viz_euc, result_SRL_LDA$n.topics),  topicmodels::topics(SRL_lda[[result_SRL_LDA$result_man[1,1]]])) |> 
+  as.data.frame() |> 
+  pivot_wider(names_from = Var2, values_from = Freq) |> 
+  regulartable() |> 
+  set_header_labels(i = 1, j = 1, values = c(Var1 = "")) |> 
+  autofit()
+```
